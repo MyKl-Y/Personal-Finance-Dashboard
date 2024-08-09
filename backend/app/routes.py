@@ -1,6 +1,6 @@
 # app/routes.py
 from flask import Blueprint, request, jsonify
-from .models import db, User, Transaction
+from .models import db, User, Transaction, Budget
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 
@@ -98,3 +98,72 @@ def get_transactions(user_id):
         return jsonify({"message": "Access denied"}), 403
     transactions = Transaction.query.filter_by(user_id=user_id).all()
     return jsonify([t.to_dict() for t in transactions])
+
+@bp.route('/api/transactions/<int:transaction_id>', methods=['DELETE', 'GET', 'PUT', 'PATCH'])
+@login_required
+def transaction(transaction_id):
+    transaction = Transaction.query.get(transaction_id)
+    if not transaction:
+        return jsonify({"message": "Transaction not found"}), 404
+    if transaction.user_id != current_user.id:
+        return jsonify({"message": "Access denied"}), 403
+    if request.method == 'DELETE':
+        db.session.delete(transaction)
+        db.session.commit()
+        return jsonify({"message": "Transaction deleted successfully"})
+    elif request.method == 'GET':
+        return jsonify(transaction.to_dict())
+    else:
+        data = request.get_json()
+        if 'amount' in data:
+            transaction.amount = data['amount']
+        if 'category' in data:
+            transaction.category = data['category']
+        db.session.commit()
+        return jsonify({"message": "Transaction updated successfully"})
+    
+@bp.route('/api/budgets', methods=['POST'])
+@login_required
+def add_budget():
+    data = request.get_json()
+    new_budget = Budget(user_id=data['user_id'], name=data['name'], total_amount=data['total_amount'], start_date=data['start_date'], end_date=data['end_date'], categories=data['categories'])
+    db.session.add(new_budget)
+    db.session.commit()
+    return jsonify({"message": "Budget added successfully"}), 201
+
+@bp.route('/api/budgets/<int:user_id>', methods=['GET'])
+@login_required
+def get_budgets(user_id):
+    if user_id != current_user.id:
+        return jsonify({"message": "Access denied"}), 403
+    budgets = Budget.query.filter_by(user_id=user_id).all()
+    return jsonify([b.to_dict() for b in budgets])
+
+@bp.route('/api/budgets/<int:budget_id>', methods=['DELETE', 'GET', 'PUT', 'PATCH'])
+@login_required
+def budget(budget_id):
+    budget = Budget.query.get(budget_id)
+    if not budget:
+        return jsonify({"message": "Budget not found"}), 404
+    if budget.user_id != current_user.id:
+        return jsonify({"message": "Access denied"}), 403
+    if request.method == 'DELETE':
+        db.session.delete(budget)
+        db.session.commit()
+        return jsonify({"message": "Budget deleted successfully"})
+    elif request.method == 'GET':
+        return jsonify(budget.to_dict())
+    else:
+        data = request.get_json()
+        if 'name' in data:
+            budget.name = data['name']
+        if 'total_amount' in data:
+            budget.total_amount = data['total_amount']
+        if 'start_date' in data:
+            budget.start_date = data['start_date']
+        if 'end_date' in data:
+            budget.end_date = data['end_date']
+        if 'categories' in data:
+            budget.categories = data['categories']
+        db.session.commit()
+        return jsonify({"message": "Budget updated successfully"})

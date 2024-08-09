@@ -16,6 +16,13 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email
+        }
 
 class Transaction(db.Model):
     id = Column(Integer, primary_key=True)
@@ -23,3 +30,36 @@ class Transaction(db.Model):
     amount = Column(Float, nullable=False)
     category = Column(String(64))
     timestamp = Column(DateTime, index=True, default=datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'amount': self.amount,
+            'category': self.category,
+            'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+class Budget(db.Model):
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    name = Column(String(64), nullable=False)
+    total_amount = Column(Float, nullable=False)
+    start_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=False)
+    categories = Column(String(256), nullable=False)
+    created_at = Column(DateTime, index=True, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, index=True, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "name": self.name,
+            "total_amount": self.total_amount,
+            "start_date": self.start_date.strftime('%Y-%m-%d'),
+            "end_date": self.end_date.strftime('%Y-%m-%d'),
+            "categories": self.categories.split(',') if self.categories else [],
+            "created_at": self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            "updated_at": self.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+        }
