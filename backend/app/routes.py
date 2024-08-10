@@ -26,7 +26,12 @@ def login():
     if user is None or not user.check_password(data['password']):
         return jsonify({"message": "Invalid username or password"}), 401
     login_user(user)
-    return jsonify({"message": "Logged in successfully"}), 200
+    return jsonify({"message": "Logged in successfully", "session": request.cookies.get('session')}), 200
+
+@bp.route('/api/current', methods=['GET'])
+@login_required
+def current():
+    return jsonify({"id": current_user.id, "username": current_user.username, "email": current_user.email}), 200
 
 @bp.route('/api/logout', methods=['POST'])
 @login_required
