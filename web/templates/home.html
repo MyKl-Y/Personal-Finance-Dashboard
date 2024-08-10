@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}Home - Personal Finance Dashboard{% endblock %}
+
+{% block content %}
+<h1>Welcome to the Personal Finance Dashboard</h1>
+<p>Manage your finances efficiently and effectively with our tools</p>
+<p>
+    {% if current_user.is_authenticated %}
+        <a href="{{ url_for('web.dashboard') }}">Go to your dashboard</a>
+    {% else %}
+        <a href="{{ url_for('web.register') }}">Register</a> or <a href="{{ url_for('web.login') }}">Login</a> to get started
+    {% endif %}
+</p>
+{% endblock %}
