@@ -1,10 +1,59 @@
 # app/routes.py
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for
 from .models import db, User, Transaction, Budget
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 
 bp = Blueprint('main', __name__)
+
+@bp.route('/')
+def home():
+    #if request.accept_mimetypes.accept_json:
+    #    return jsonify({"message": "Welcome to the Personal Finance Dashboard"}), 200
+    return render_template('home.html')
+
+@bp.route('/register', methods=['GET', 'POST'])
+def register_view():
+    if request.method == 'POST':
+        data = request.get_json() if request.accept_mimetypes.accept_json else request.form
+        if User.query.filter_by(username=data['username']).first():
+            return jsonify({"message": "Username already exists"}), 400 if request.accept_mimetypes.accept_json else render_template('register.html', error="Username already exists")
+        if User.query.filter_by(email=data['email']).first():
+            return jsonify({"message": "Email already exists"}), 400 if request.accept_mimetypes.accept_json else render_template('register.html', error="Email already exists")
+        new_user = User(username=data['username'], email=data['email'])
+        new_user.set_password(data['password'])
+        db.session.add(new_user)
+        db.session.commit()
+        login_user(new_user)
+        return redirect(url_for('main.home'))
+
+    if request.accept_mimetypes.accept_json:
+        return jsonify({"message": "Please send POST request with user data"}), 405
+    return render_template('register.html')
+
+@bp.route('/login', methods=['GET', 'POST'])
+def login_view():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+        if user is None or not user.check_password(password):
+            return render_template('login.html', error="Invalid username or password")
+        login_user(user)
+        return redirect(url_for('main.home'))
+
+    return render_template('login.html')
+
+@bp.route('/logout')
+@login_required
+def logout_view():
+    logout_user()
+    return redirect(url_for('main.home'))
+
+@bp.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('home.html')
 
 @bp.route('/api/register', methods=['POST'])
 def register():
@@ -46,7 +95,10 @@ def users():
         return jsonify({"message": "Access denied"}), 403
     #users = db.session.query(User).all()
     users = User.query.all() # Same as above
-    return jsonify([f'{u.id}: {u.username} ({u.email}) [{u.password_hash}]' for u in users])
+    if request.accept_mimetypes.accept_json:
+        return jsonify([f'{u.id}: {u.username} ({u.email}) [{u.password_hash}]' for u in users])
+    else:
+        return render_template('users.html', users=users)
 
 @bp.route('/api/users/<int:user_id>', methods=['DELETE', 'GET', 'PUT', 'PATCH'])
 @login_required
@@ -70,7 +122,9 @@ def delete_user(user_id):
 def get_user(user_id):
     user = User.query.get(user_id)
     if user:
-        return jsonify({"username": user.username, "email": user.email, "password_hash": user.password_hash})
+        if request.accept_mimetypes.accept_json:
+            return jsonify({"username": user.username, "email": user.email, "password_hash": user.password_hash})
+        return render_template('user.html', user=user)
     else:
         return jsonify({"message": "User not found"}), 404
 def update_user(user_id):
@@ -102,7 +156,9 @@ def get_transactions(user_id):
     if user_id != current_user.id:
         return jsonify({"message": "Access denied"}), 403
     transactions = Transaction.query.filter_by(user_id=user_id).all()
-    return jsonify([t.to_dict() for t in transactions])
+    if request.accept_mimetypes.accept_json:
+        return jsonify([t.to_dict() for t in transactions])
+    return render_template('transactions.html', transactions=transactions)
 
 @bp.route('/api/transactions/<int:transaction_id>', methods=['DELETE', 'GET', 'PUT', 'PATCH'])
 @login_required
@@ -117,7 +173,9 @@ def transaction(transaction_id):
         db.session.commit()
         return jsonify({"message": "Transaction deleted successfully"})
     elif request.method == 'GET':
-        return jsonify(transaction.to_dict())
+        if request.accept_mimetypes.accept_json:
+            return jsonify(transaction.to_dict())
+        return render_template('transaction.html', transaction=transaction)
     else:
         data = request.get_json()
         if 'amount' in data:
@@ -142,7 +200,9 @@ def get_budgets(user_id):
     if user_id != current_user.id:
         return jsonify({"message": "Access denied"}), 403
     budgets = Budget.query.filter_by(user_id=user_id).all()
-    return jsonify([b.to_dict() for b in budgets])
+    if request.accept_mimetypes.accept_json:
+        return jsonify([b.to_dict() for b in budgets])
+    return render_template('budgets.html', budgets=budgets)
 
 @bp.route('/api/budgets/<int:budget_id>', methods=['DELETE', 'GET', 'PUT', 'PATCH'])
 @login_required
@@ -157,7 +217,9 @@ def budget(budget_id):
         db.session.commit()
         return jsonify({"message": "Budget deleted successfully"})
     elif request.method == 'GET':
-        return jsonify(budget.to_dict())
+        if request.accept_mimetypes.accept_json:
+            return jsonify(budget.to_dict())
+        return render_template('budget.html', budget=budget)
     else:
         data = request.get_json()
         if 'name' in data:
