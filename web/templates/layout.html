@@ -11,65 +11,87 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </head>
 <body class="d-flex flex-column vh-100">
-    {% if request.path != url_for('web.home') %}
-    <header>
+    <header class="sticky-top">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
             <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('web.home') }}">
-                <i class="bi bi-cash-coin" style="color: royalblue;"></i>
-                Personal Finance Dashboard
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+                <a class="navbar-brand" href="{{ url_for('web.home') }}">
+                    <!--<i class="bi bi-coin text-primary"></i>-->
+                    <span class="border border-primary border-3 text-primary rounded-circle px-2">$</span>
+                    Personal Finance Dashboard
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav">
-                    {% if current_user.is_authenticated %}
-                        {% if request.path == url_for('web.dashboard') %}
+                <div class="collapse navbar-collapse justify-content-between" id="navbarSupportedContent">
+                    <ul class="navbar-nav">
+                        {% if request.path == url_for('web.home') %}
+                        <li class="nav-item dropdown">
+                            <a 
+                                class="nav-link me-3 dropdown-toggle {{ 'active' if request.path == url_for('web.home') else ''}}" 
+                                href="#"
+                                role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                id="navbarDropdown"
+                            >Home</a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li class="nav-item">
+                                    <a
+                                        class="dropdown-item {{ 'active' if request.path == '#' else '' }}" 
+                                        href="#"
+                                    >Home</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a
+                                        class="dropdown-item {{ 'active' if request.path == '#explore' else '' }}" 
+                                        href="#explore"
+                                    >Explore</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a
+                                        class="dropdown-item {{ 'active' if request.path == '#about' else '' }}" 
+                                        href="#about"
+                                    >About</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a
+                                        class="dropdown-item {{ 'active' if request.path == '#pricing' else '' }}" 
+                                        href="#pricing"
+                                    >Pricing</a>
+                                </li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                        {% if current_user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="nav-link active disabled" href="{{ url_for('web.dashboard') }}">Dashboard</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('web.dashboard') }}">Dashboard</a>
+                                <a 
+                                    class="nav-link me-3 {{ 'active' if request.path == url_for('web.dashboard') else '' }}" 
+                                    href="{{ url_for('web.dashboard') }}"
+                                >Dashboard</a>
                             </li>
                         {% endif %}
-                        {% if request.path == url_for('web.logout') %}
-                            <li class="nav-item">
-                                <a class="nav-link active disabled" href="{{ url_for('web.logout') }}">Logout</a>
-                            </li>
+                    </ul>
+                    <div class="d-flex justify-content-end">
+                        {% if current_user.is_authenticated %}
+                            <a 
+                                role="button" 
+                                class="btn {{ 'btn-primary active' if request.path == url_for('web.logout') else 'btn-outline-primary' }}" 
+                                href="{{ url_for('web.logout') }}"
+                            >Logout</a>
                         {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('web.logout') }}">Logout</a>
-                            </li>
+                            <a 
+                                role="button" 
+                                class="btn btn-dark me-3 {{ 'pe-none' if request.path == url_for('web.login') else 'text-white-50' }}" 
+                                href="{{ url_for('web.login') }}">Login</a>
+                            <a 
+                                role="button" 
+                                class="btn {{ 'btn-primary pe-none' if request.path == url_for('web.register') else 'btn-outline-primary' }}" 
+                                href="{{ url_for('web.register') }}">Get Started</a>
                         {% endif %}
-                    {% else %}
-                        {% if request.path == url_for('web.login') %}
-                            <li class="nav-item">
-                                <a class="nav-link active disabled" href="{{ url_for('web.login') }}">Login</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('web.login') }}">Login</a>
-                            </li>
-                        {% endif %}
-                        {% if request.path == url_for('web.register') %}
-                            <li class="nav-item">
-                                <a class="nav-link active disabled" href="{{ url_for('web.register') }}">Register</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('web.register') }}">Register</a>
-                            </li>
-                        {% endif %}
-                    {% endif %}
-                </ul>
-            </div>
+                    </div>
+                </div>
             </div>
         </nav>
     </header>
-    {% endif %}
 
     <main class="container-fluid flex-grow-1">
         {% block content %}{% endblock %}

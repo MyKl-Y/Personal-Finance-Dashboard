@@ -3,13 +3,37 @@
 {% block title %}Home - Personal Finance Dashboard{% endblock %}
 
 {% block content %}
-<h1>Welcome to the Personal Finance Dashboard</h1>
-<p>Manage your finances efficiently and effectively with our tools</p>
-<p>
-    {% if current_user.is_authenticated %}
-        <a href="{{ url_for('web.dashboard') }}">Go to your dashboard</a>
-    {% else %}
-        <a href="{{ url_for('web.register') }}">Register</a> or <a href="{{ url_for('web.login') }}">Login</a> to get started
-    {% endif %}
-</p>
+<button 
+    type="button" class="btn btn-outline-danger btn-floating btn-lg" 
+    style="position: fixed; bottom: 20px; right: 20px; display: none;" 
+    onclick="window.scrollTo(0,0)" id="btn-back-to-top"
+>
+    <i class="bi bi-arrow-up"></i>
+</button>
+<div class="container-fluid vh-100">
+    <h1 class="w-50" id="#">Manage your finances efficiently and effectively with our tools<span class="text-primary">.</span></h1>
+    <p>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('web.dashboard') }}">Go to your dashboard</a>
+        {% else %}
+            <a href="{{ url_for('web.register') }}">Register</a> or <a href="{{ url_for('web.login') }}">Login</a> to get started
+        {% endif %}
+    </p>
+</div>
+<div class="container-fluid vh-100">
+    <h2 id="about">About</h2>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnBackToTop = document.getElementById('btn-back-to-top');
+        window.onscroll = function() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                btnBackToTop.style.display = 'block';
+            } else {
+                btnBackToTop.style.display = 'none';
+            }
+        };
+    });
+</script>
 {% endblock %}

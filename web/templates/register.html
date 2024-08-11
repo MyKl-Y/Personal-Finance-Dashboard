@@ -3,24 +3,36 @@
 {% block title %}Register - Personal Finance Dashboard{% endblock %}
 
 {% block content %}
-<h2>Register</h2>
-<form method="post" action="{{ url_for('web.register') }}">
-    <div class="mb-3">
-        <label class="form-label" for="username">Username:</label>
-        <input class="form-control" type="text" id="username" name="username" required>
+<div class="d-flex align-items-center justify-content-center w-100 h-100">
+    <div class="card w-50">
+        <div class="card-body">
+            <h2 class="card-title">Register</h2>
+            <p class="text-muted">Already have an account? <a href="{{ url_for('web.login') }}">Login here</a>.</p>
+            <form method="post" action="{{ url_for('web.register') }}" novalidate>
+                <div class="form-floating mb-3">
+                    <input 
+                        class="form-control {{ 'is-invalid' if 'Username' in error else '' }}" 
+                        value="{{ request.form.get('username', '') }}"
+                        type="text" id="username" name="username" placeholder="Username" required>
+                    <label for="username">Username <span class="text-danger">*</span></label>
+                    <div class="invalid-feedback">{{ error }}</div>
+                </div>
+                <div class="form-floating mb-3">
+                    <input 
+                    class="form-control {{ 'is-invalid' if 'Email' in error else '' }}" 
+                    value="{{ request.form.get('email', '') }}"
+                    type="email" id="email" name="email" placeholder="Email" required>
+                    <label for="email">Email <span class="text-danger">*</span></label>
+                    <div class="invalid-feedback">{{ error }}</div>
+                </div>
+                <div class="form-floating mb-3">
+                    <input class="form-control {{ 'is-invalid' if 'Password' in error else '' }}" type="password" id="password" name="password" placeholder="Password" required>
+                    <label for="password">Password <span class="text-danger">*</span></label>
+                    <div class="invalid-feedback">{{ error }}</div>
+                </div>
+                <button class="btn btn-primary mb-3 w-100" type="submit">Register</button>
+            </form>
+        </div>
     </div>
-    <div class="mb-3">
-        <label class="form-label" for="email">Email:</label>
-        <input class="form-control" type="email" id="email" name="email" required>
-    </div>
-    <div class="mb-3">
-        <label class="form-label" for="password">Password:</label>
-        <input class="form-control" type="password" id="password" name="password" required>
-    </div>
-    <button class="btn btn-primary mb-3" type="submit">Register</button>
-</form>
-{% if error %}
-<p class="text-danger">{{ error }}</p>
-{% endif %}
-<p class="text-muted">Already have an account? <a href="{{ url_for('web.login') }}">Login here</a>.</p>
+</div>
 {% endblock %}

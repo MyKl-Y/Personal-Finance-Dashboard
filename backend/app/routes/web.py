@@ -1,10 +1,53 @@
 # app/routes.py
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for
+import re
+
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, render_template_string
 from ..models import db, User, Transaction, Budget
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 
 bp = Blueprint('web', __name__)
+
+@bp.route('/toggle-login-input', methods=['POST'])
+def toggle_login_input():
+    use_email = 'useEmail' in request.form
+    username_or_email = request.form.get('username_or_email')
+    if use_email:
+        input_html = """
+        <div id="login-input-container">
+            <div class="form-floating mb-3">
+                <input 
+                    class="form-control" 
+                    type="email" 
+                    id="username_or_email" 
+                    name="username_or_email" 
+                    placeholder="Email" 
+                    value="{{ request.form.get('username_or_email', '') }}"
+                    required>
+                <label for="username_or_email">Email <span class="text-danger">*</span></label>
+                <div class="invalid-feedback">Please provide a valid email.</div>
+            </div>
+        </div>
+        """
+    else:
+        input_html = """
+        <div id="login-input-container">
+            <div class="form-floating mb-3">
+                <input 
+                    class="form-control" 
+                    type="text" 
+                    id="username_or_email" 
+                    name="username_or_email" 
+                    placeholder="Username" 
+                    value="{{ request.form.get('username_or_email', '') }}"
+                    required>
+                <label for="username_or_email">Username <span class="text-danger">*</span></label>
+                <div class="invalid-feedback">Please provide a valid username.</div>
+            </div>
+        </div>
+        """
+    
+    return render_template_string(input_html)
 
 @bp.route('/')
 def home():
@@ -15,29 +58,54 @@ def home():
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        data = request.get_json() if request.accept_mimetypes.accept_json else request.form
-        if User.query.filter_by(username=data['username']).first():
-            return jsonify({"message": "Username already exists"}), 400 if request.accept_mimetypes.accept_json else render_template('register.html', error="Username already exists")
-        if User.query.filter_by(email=data['email']).first():
-            return jsonify({"message": "Email already exists"}), 400 if request.accept_mimetypes.accept_json else render_template('register.html', error="Email already exists")
-        new_user = User(username=data['username'], email=data['email'])
-        new_user.set_password(data['password'])
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        if User.query.filter_by(username=username).first():
+            return render_template('register.html', username=username, email=email, error="Username already exists.")
+        if User.query.filter_by(email=email).first():
+            return render_template('register.html', username=username, email=email, error="Email already exists.")
+        if email.count('@') != 1 or email.count('.') < 1:
+            return render_template('register.html', username=username, email=email, error="Email address is invalid.")
+        new_user = User(username=username, email=email)
+        if len(password) < 8:
+            return render_template('register.html', username=username, email=email, error="Password must be at least 8 characters long.")
+        if not re.search(r'[a-z]', password):
+            return render_template('register.html', username=username, email=email, error="Password must contain at least one lowercase letter.")
+        if not re.search(r'[A-Z]', password):
+            return render_template('register.html', username=username, email=email, error="Password must contain at least one uppercase letter.")
+        if not re.search(r'[0-9]', password):
+            return render_template('register.html', username=username, email=email, error="Password must contain at least one number.")
+        if not re.search(r'[-_!@$%*&./?]', password):
+            return render_template('register.html', username=username, email=email, error="Password must contain at least one special character (-_!@$%*&./?).")
+        if not re.fullmatch(r'[a-zA-Z0-9-_!@$%*&./?]{8,}', password):
+            return render_template('register.html', username=username, email=email, error="Password must contain only letters, numbers, special characters (-_!@$%*&./?) and be at least 8 characters long.")
+        new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
-        login_user(new_user)
-        return redirect(url_for('web.home'))
+        return redirect(url_for('web.login'))
     
     return render_template('register.html')
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        username_or_email = request.form.get('username_or_email')
         password = request.form.get('password')
-        remember = request.form.get('remember') == 'on'
-        user = User.query.filter_by(username=username).first()
-        if user is None or not user.check_password(password):
-            return render_template('login.html', error="Invalid username or password")
+        remember = 'remember' in request.form
+        use_email = 'useEmail' in request.form
+        # Validate if the input is an email or username based on the checkbox state
+        if use_email:
+            user = User.query.filter_by(email=username_or_email).first()
+        else:
+            user = User.query.filter_by(username=username_or_email).first()
+        if user is None:
+            if use_email:
+                return render_template('login.html', username_or_email=username_or_email, error="Invalid email")
+            else:
+                return render_template('login.html', username_or_email=username_or_email, error="Invalid username")
+        if not user.check_password(password):
+            return render_template('login.html', username_or_email=username_or_email, error="Invalid password")
         login_user(user, remember=remember)
         return redirect(url_for('web.home'))
 
@@ -52,4 +120,12 @@ def logout():
 @bp.route('/dashboard')
 @login_required
 def dashboard():
+    return render_template('home.html')
+
+@bp.route('/about')
+def about():
+    return render_template('home.html')
+
+@bp.route('/pricing')
+def pricing():
     return render_template('home.html')

@@ -3,24 +3,65 @@
 {% block title %}Login - Personal Finance Dashboard{% endblock %}
 
 {% block content %}
-<h2>Login</h2>
-<form method="post" action="{{ url_for('web.login') }}">
-    <div class="mb-3">
-        <label class="form-label" for="username">Username:</label>
-        <input class="form-control" type="text" id="username" name="username" placeholder="Username" required>
+<div class="d-flex align-items-center justify-content-center w-100 h-100">
+    <div class="card w-50">
+        <div class="card-body">
+            <h2 class="card-title">Login</h2>
+            <p class="text-muted">Don't have an account? <a href="{{ url_for('web.register') }}">Register here</a>.</p>
+            <form method="post" action="{{ url_for('web.login') }}" novalidate>
+                <div class="p-3 position-absolute top-0 end-0">
+                    <input class="btn-check" type="checkbox" id="useEmail" name="useEmail" 
+                        hx-post="{{ url_for('web.toggle_login_input') }}"
+                        hx-target="#login-input-container" 
+                        hx-swap="outerHTML"
+                        hx-trigger="click"
+                        {{ 'checked' if error == 'Invalid email' else '' }}
+                        autocomplete="off">
+                    <label class="btn btn-outline-info" for="useEmail">Switch Login Mode</label>
+                </div>
+                {% if error == 'Invalid email' %}
+                <div id="login-input-container">
+                    <div class="form-floating mb-3">
+                        <input 
+                            class="form-control {{ 'is-invalid' if error == 'Invalid username' or error == 'Invalid email' else '' }}" 
+                            type="text" 
+                            id="username_or_email" 
+                            name="username_or_email"
+                            placeholder="Username"
+                            value="{{ request.form.get('username_or_email', '') }}"
+                            required>
+                        <label for="username_or_email"><span id="username_or_email">Email</span> <span class="text-danger">*</span></label>
+                        <div class="invalid-feedback">Please provide a valid email.</div>
+                    </div>
+                </div>
+                {% else %}
+                <div id="login-input-container">
+                    <div class="form-floating mb-3">
+                        <input 
+                            class="form-control {{ 'is-invalid' if error == 'Invalid username' or error == 'Invalid email' else '' }}" 
+                            type="text" 
+                            id="username_or_email" 
+                            name="username_or_email" 
+                            placeholder="Username" 
+                            value="{{ request.form.get('username_or_email', '') }}"
+                            required>
+                        <label for="username_or_email"><span id="username_or_email">Username</span> <span class="text-danger">*</span></label>
+                        <div class="invalid-feedback">Please provide a valid username.</div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="form-floating mb-3">
+                    <input class="form-control  {{ 'is-invalid' if error == 'Invalid password' else '' }}" type="password" id="password" name="password" placeholder="Password" required>
+                    <label for="password">Password <span class="text-danger">*</span></label>
+                    <div class="invalid-feedback">Password was incorrect.</div>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+                <button class="btn btn-primary mb-3 w-100" type="submit">Login</button>
+            </form>
+        </div>
     </div>
-    <div class="mb-3">
-        <label class="form-label" for="password">Password:</label>
-        <input class="form-control" type="password" id="password" name="password" required>
-    </div>
-    <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" id="remember" name="remember">
-        <label class="form-check-label" for="remember">Remember me</label>
-    </div>
-    <button class="btn btn-primary mb-3" type="submit">Login</button>
-</form>
-{% if error %}
-<p class="text-danger">{{ error }}</p>
-{% endif %}
-<p class="text-muted">Don't have an account? <a href="{{ url_for('web.register') }}">Register here</a>.</p>
+</div>
 {% endblock %}
