@@ -92,6 +92,13 @@
         height: 30vh;
         margin-bottom: 3rem;
     }
+
+    footer #footer-content {
+        margin-top: 6rem;
+        /*height: calc(100vh - 6rem);*/
+        height: 95vh;
+        border-radius: 5rem 5rem 0 0;
+    }
 }
 
 .hero {
