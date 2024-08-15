@@ -3,15 +3,54 @@
     background-color: rgba(0, 0, 0, .6) !important;
     backdrop-filter: blur( 10px );
     -webkit-backdrop-filter: blur( 10px );
+    transition: opacity 0.5s ease-in-out;
+    opacity: 1;
+}
+
+.bi-instagram {
+    background: #f09433; 
+    background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); 
+    background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
+    background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); 
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bi-linkedin {
+    color: #0077B5;
+}
+
+.bi-twitter-x {
+    color: #FFFFFF;
+}
+
+.bi-github {
+    color: #FFFFFF;
 }
 
 @media (min-width: 992px) {
+    svg {
+        height: 2vw;
+    }
+
     .hero {
         width: 75vh;
         height: 75vh;
         position: sticky;
         top: 7rem;
-        margin-left: 4rem
+    }
+
+    #home-view, main {
+        padding-top: calc(1vw + 3rem);
+    }
+
+    .navbar-brand {
+        font-size: 2vw !important;
+    }
+
+    h2 {
+        font-size: 3vw !important;
     }
 
     h1 {
@@ -24,19 +63,30 @@
         font-weight: 300 !important;
     }
 
-    #list h3 {
+    h3 {
         font-size: 2.25vw !important;
     }
-    #list p {
+    p, a, button {
         font-size: 1.25vw !important;
     }
 
     #enter-form input, #enter-form button {
         font-size: 1.5vw !important;
     }
+
+    footer #footer-content {
+        margin-top: 6rem;
+        /*height: calc(100vh - 6rem);*/
+        height: 95vh;
+        border-radius: 5rem 5rem 0 0;
+    }
 }
 
 @media (max-width: 992px) {
+    svg {
+        height: var(--bs-navbar-brand-font-size);
+    }
+
     .hero {
         width: 30vh;
         height: 30vh;

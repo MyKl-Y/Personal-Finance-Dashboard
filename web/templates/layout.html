@@ -14,10 +14,10 @@
     <header>
         <nav id="scroll-navbar" class="navbar my-3 mx-5 fixed-top navbar-expand-lg navbar-dark bg-dark text-light">
             <div class="container-fluid">
-                <a class="navbar-brand flex-grow-1" href="{{ url_for('web.home') }}">
+                <a class="navbar-brand flex-grow-1 d-flex align-items-center" href="{{ url_for('web.home') }}">
                     <!--<i class="bi bi-radar text-info"></i>
                     <span class="border border-primary border-3 text-primary rounded-circle px-2">$</span>-->
-                    <svg id="logo-38" width="78" height="24" viewBox="0 0 78 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M55.5 0H77.5L58.5 32H36.5L55.5 0Z" class="ccustom" fill="#FF7A00"></path> <path d="M35.5 0H51.5L32.5 32H16.5L35.5 0Z" class="ccompli1" fill="#FF9736"></path> <path d="M19.5 0H31.5L12.5 32H0.5L19.5 0Z" class="ccompli2" fill="#FFBC7D"></path> </svg>
+                    <svg id="logo-38" viewBox="0 0 78 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M55.5 0H77.5L58.5 32H36.5L55.5 0Z" class="ccustom" fill="#FF7A00"></path> <path d="M35.5 0H51.5L32.5 32H16.5L35.5 0Z" class="ccompli1" fill="#FF9736"></path> <path d="M19.5 0H31.5L12.5 32H0.5L19.5 0Z" class="ccompli2" fill="#FFBC7D"></path> </svg>
                     <i>
                         M.Y.MoneyMap
                     </i>
@@ -120,19 +120,85 @@
         </nav>
     </header>
 
-    <main class="container-fluid flex-grow-1 pt-5 bg-light"  data-bs-spy="scroll" data-bs-target="#scroll-navbar" data-bs-offset="0" tabindex="0">
+    <main class="container-fluid flex-grow-1 bg-light"  data-bs-spy="scroll" data-bs-target="#scroll-navbar" data-bs-offset="0" tabindex="0">
         {% block content %}{% endblock %}
     </main>
 
     {% if request.path == url_for('web.home') %}
     <footer class="bg-light bottom-0">
-        <p class="m-0 vw-100 bg-dark text-light d-flex justify-content-center align-items-center" style="margin-top: 6rem; height: calc(100vh - 6rem); border-radius: 5rem 5rem 0 0;">&copy; 2024 M.Y.MoneyMap</p>
+        <div id="footer-content" class="d-inline-flex flex-column justify-content-around align-items-center text-light bg-dark">
+            <div class="d-inline-flex flex-grow-1 flex-row justify-content-around align-items-start vw-100 p-5">
+                <div class="pt-5 ps-5 d-flex flex-column justify-content-between align-items-start h-100" style="flex-basis: 0;">
+                    <a class="navbar-brand d-flex align-items-center">
+                        <svg id="logo-38" viewBox="0 0 78 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M55.5 0H77.5L58.5 32H36.5L55.5 0Z" class="ccustom" fill="#FF7A00"></path> <path d="M35.5 0H51.5L32.5 32H16.5L35.5 0Z" class="ccompli1" fill="#FF9736"></path> <path d="M19.5 0H31.5L12.5 32H0.5L19.5 0Z" class="ccompli2" fill="#FFBC7D"></path> </svg>
+                        <i>&nbsp; M.Y.MoneyMap</i>
+                    </a>
+                    <p class="sub">
+                        Designed by MyKl-Y
+                    </p>
+                    <p class="text-white-50" style="display: -webkit-box; -webkit-box-orient: vertical; max-width: calc(100vw/3 - 10rem); -webkit-line-clamp: 7; overflow: hidden;">
+                        I am a full-stack developer with an interest in finance and a passion for creating web applications that are user-friendly, responsive, and visually appealing. Feel free to reach out to me on any of my social media platforms.
+                    </p>
+                </div>
+                <div class="pt-5 d-flex flex-column justify-content-between h-100 align-items-start" style="flex-basis: 0;">
+                    <h3>Sections</h3>
+                    <a href="#home" class="nav-link">Home</a>
+                    <a href="#explore" class="nav-link">Explore</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#pricing" class="nav-link">Pricing</a>
+                </div>
+                <div class="pt-5 pe-5 d-flex flex-column justify-content-start align-items-start h-100" style="flex-basis: 0;">
+                    <h3>Get in touch</h3>
+                    <div class="d-inline-flex flex-row justify-content-center align-items-center">
+                        <a href="https://www.github.com/MyKl-Y" target="_blank" class="me-4">
+                            <i class="bi bi-github" style="font-size: 2vw !important;"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/michael-yim-olmos/" target="_blank" class="me-4">
+                            <i class="bi bi-linkedin" style="font-size: 2vw !important;"></i>
+                        </a>
+                        <a href="https://www.x.com/mikey_y_yim" target="_blank" class="me-4">
+                            <i class="bi bi-twitter-x" style="font-size: 2vw !important;"></i>
+                        </a>
+                        <a href="https://www.instagram.com/m.y.creationz/" target="_blank" class="me-4">
+                            <i class="bi bi-instagram" style="font-size: 2vw !important;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="m-0" style="width: 90%;">
+            <p class="m-0 p-4 vw-100 d-flex justify-content-around align-items-center">
+                Copyright &copy;2024. All rights reserved.
+            </p>
+        </div>
     </footer>
     {% else %}
     <footer class="py-2 bottom-0">
-        <p class="m-0 d-flex justify-content-center align-items-center">&copy; 2024 M.Y.MoneyMap</p>
+        <p class="m-0 d-flex justify-content-center align-items-center">
+            &copy;2024
+            M.Y.MoneyMap
+        </p>
     </footer>
     {% endif %}
+
+    <script>
+        document.onscroll = function() {
+            const scrollNavbar = document.getElementById('scroll-navbar');
+            const footerHeight = document.querySelector('footer').offsetHeight;
+            const bottomThreshold = document.body.scrollHeight - window.innerHeight - (footerHeight / 2);
+
+            if (window.scrollY >= bottomThreshold) {
+                scrollNavbar.style.opacity = 0;
+                document.body.classList.add('bg-dark');
+                document.body.classList.remove('bg-light');
+                scrollNavbar.style.pointerEvents = 'none';
+            } else {
+                scrollNavbar.style.opacity = 1;
+                document.body.classList.add('bg-light');
+                document.body.classList.remove('bg-dark');
+                scrollNavbar.style.pointerEvents = 'auto';
+            }
+        }
+    </script>
 </body>
 </html>
     <!--
