@@ -1,7 +1,38 @@
+#scroll-navbar {
+    border-radius: 1.75rem !important;
+    background-color: rgba(0, 0, 0, .6) !important;
+    backdrop-filter: blur( 10px );
+    -webkit-backdrop-filter: blur( 10px );
+}
+
 @media (min-width: 992px) {
     .hero {
         width: 75vh;
         height: 75vh;
+        position: sticky;
+        top: 7rem;
+        margin-left: 4rem
+    }
+
+    h1 {
+        font-size: 5vw !important;
+        margin-top: 2rem !important;
+    }
+    
+    .sub {
+        font-size: 1.5vw !important;
+        font-weight: 300 !important;
+    }
+
+    #list h3 {
+        font-size: 2.25vw !important;
+    }
+    #list p {
+        font-size: 1.25vw !important;
+    }
+
+    #enter-form input, #enter-form button {
+        font-size: 1.5vw !important;
     }
 }
 

@@ -1,100 +1,40 @@
 {% extends "layout.html" %}
 
-{% block title %}Home - Personal Finance Dashboard{% endblock %}
+{% block title %}Home - M.Y.MoneyMap{% endblock %}
 
 {% block content %}
-<button 
-    type="button" class="btn btn-outline-danger btn-floating btn-lg" 
-    style="position: fixed; bottom: 20px; right: 20px; display: none;" 
-    onclick="window.scrollTo(0,0)" id="btn-back-to-top"
->
-    <i class="bi bi-arrow-up"></i>
-</button>
-<div class="container-fluid d-flex flex-lg-row flex-column-reverse vh-auto p-5 bg-light text-dark">
-    <!--
-    <div class="ps-3">
-        <div class="calculator card bg-primary">
-            <div class="card-body">
-                <div class="screen">
-                </div>
-                <div class="buttons">
-                    <button class="btn btn-success">On</button>
-                    <span></span>
-                    <button class="btn btn-secondary ps-2">&Sqrt;</button>
-                    <button class="btn btn-secondary">±</button>
-                    <button class="btn btn-danger p-1">AC</button>
-                    <button class="btn btn-danger">C</button>
-                    <button class="btn btn-secondary ps-2">%</button>
-                    <button class="btn btn-secondary">÷</button>
-                    <button class="btn btn-light">7</button>
-                    <button class="btn btn-light">8</button>
-                    <button class="btn btn-light">9</button>
-                    <button class="btn btn-secondary">x</button>
-                    <button class="btn btn-light">4</button>
-                    <button class="btn btn-light">5</button>
-                    <button class="btn btn-light">6</button>
-                    <button class="btn btn-secondary">-</button>
-                    <button class="btn btn-light">1</button>
-                    <button class="btn btn-light">2</button>
-                    <button class="btn btn-light">3</button>
-                    <button class="btn btn-secondary">+</button>
-                    <button class="btn btn-light">0</button>
-                    <button class="btn btn-light">.</button>
-                    <button class="btn btn-light">=</button>
-                </div>
-            </div>
-        </div>
-        <div class="credit-card card border-0 bg-primary">
-            <div class="card-body">
-                <span class="d-flex flex-row justify-content-between">
-                    <p>Platinum</p>
-                    <h5>MyKl-Y</h5>
-                </span>
-                <div class="p-3">
-                    <div class="card border-0 d-inline-flex flex-row" 
-                        style="
-                            background: 
-                                radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 30%, #8A6E2F 40%, transparent 80%),
-                                radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1B464 25%, #5d4a1f 62.5%, #5d4a1f 100%);;">
-                        <div class="card-body py-3 px-4"></div>
-                    </div>
-                    <h4 class="card-title m-0 mt-2">1234 5678 9012 3456</h4>
-                    <div class="w-50">
-                        <div class="d-flex flex-row justify-content-between">
-                            <span style="font-size: xx-small;">1234</span>
-                            <span class="d-flex flex-row justify-content-between pt-2">
-                                <span class="d-flex flex-column lh-1 justify-content-center align-items-center" style="font-size: xx-small;">
-                                    <span>GOOD</span><span>THRU</span>
-                                </span>
-                                &nbsp;12 / 99
-                            </span>
-                        </div>
-                    </div>
-                    <div class="card-text d-flex flex-row justify-content-between">
-                        <span>JOHN A DOE</span>
-                        <h3 class="w-50 text-end m-0">$$$$</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    -->
-    <div class="w-auto pe-3">
-        <h1 id="#">Manage Your Financial Future with <b>Our Finance Tool<span class="text-primary">.</span></b></h1>
-        <p>
+<div class="container-fluid d-flex flex-lg-row flex-column-reverse vh-auto min-vh-100 p-5 bg-light text-dark">
+    <div id="home" style="position: absolute; top: 0; height: 50vh;"></div>
+    <div class="w-auto me-5 text-lg-start text-center">
+        <h1 class="mb-4" id="home">Manage Your Financial Future with <b>Our Finance Tool<span class="text-primary">.</span></b></h1>
+        <p class="sub">
             With our user-friendly tool you will be able to track your income, expenses, and investments in one place
             while also creating budgets, setting financial goals, and monitoring your progress over time. 
         </p>
         {% if current_user.is_authenticated %}
             <a role="button" class="btn btn-primary rounded-pill w-50" href="{{ url_for('web.dashboard') }}">Go to your dashboard</a>
         {% else %}
-        <form class="d-inline-flex direction-row rounded-pill border p-1" method="post" action="{{ url_for('web.register') }}">
+        <form id="enter-form" class="d-inline-flex direction-row rounded-pill border p-1" method="post" action="{{ url_for('web.register') }}">
             <input class="form-control w-auto border-0 rounded-pill me-2 bg-transparent" required placeholder="youremail@email.com" name="email">
             <button class="btn btn-outline-primary rounded-pill" type="submit">Enter</button> 
         </form>
         {% endif %}
+        <div class="d-flex flex-row justify-content-between text-center mt-5">
+            <div id="list" class="d-flex flex-column">
+                <h3>Track</h3>
+                <p>Track your income, expenses, and investments in one place.</p>
+            </div>
+            <div id="list" class="d-flex flex-column">
+                <h3>Plan</h3>
+                <p>Create budgets, set financial goals, and monitor your progress over time.</p>
+            </div>
+            <div id="list" class="d-flex flex-column">
+                <h3>Secure</h3>
+                <p>Rest assured that your data is safe and secure with us.</p>
+            </div>
+        </div>
     </div>
-    <div class="w-auto ps-3 d-flex justify-content-center">
+    <div class="w-auto d-flex justify-content-center">
         <div class="hero">
             <div class="bg-primary">s</div>
             <div class="bg-danger">s</div>
@@ -103,15 +43,25 @@
         </div>
     </div>
 </div>
-<div class="container-fluid vh-auto p-5 bg-dark text-light">
+<div class="container-fluid vh-auto p-5 bg-light text-dark min-vh-100">
+    <div id="explore" style="top: 0; height: 5rem;"></div>
     <h2 id="explore">Explore</h2>
 </div>
-<div class="container-fluid vh-auto p-5 bg-light text-dark">
+<div class="container-fluid vh-auto p-5 bg-light text-dark min-vh-100">
+    <div id="about" style="top: 0; height: 5rem;"></div>
     <h2 id="about">About</h2>
 </div>
-<div class="container-fluid vh-auto p-5 bg-dark text-light">
+<div class="container-fluid vh-auto p-5 bg-light text-dark min-vh-100 mb-5">
+    <div id="pricing" style="top: 0; height: 5rem;"></div>
     <h2 id="pricing">Pricing</h2>
 </div>
+<button 
+    type="button" class="btn btn-outline-danger btn-floating btn-lg" 
+    style="position: fixed; bottom: 20px; right: 20px; display: none;" 
+    onclick="window.scrollTo(0,0)" id="btn-back-to-top"
+>
+    <i class="bi bi-arrow-up"></i>
+</button>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
