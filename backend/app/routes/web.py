@@ -1,4 +1,4 @@
-# app/routes.py
+# app/web.py
 import re
 
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, render_template_string
@@ -120,12 +120,9 @@ def logout():
 @bp.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('home.html')
+    return render_template('dashboard.html')
 
-@bp.route('/about')
-def about():
-    return render_template('home.html')
-
-@bp.route('/pricing')
-def pricing():
-    return render_template('home.html')
+@bp.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html')
