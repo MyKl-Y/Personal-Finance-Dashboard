@@ -1,12 +1,167 @@
 # app/web.py
 import re
+import datetime
 
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, render_template_string
-from ..models import db, User, Transaction, Budget
+from ..models import db, User, Transaction, Budget, Account
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 
 bp = Blueprint('web', __name__)
+
+@bp.context_processor
+def inject_now():
+    return {'now': datetime.datetime.now()}
+
+@bp.route('/account-type', methods=['POST'])
+def account_type():
+    transaction_type = request.values.get('account-type')
+    if transaction_type == '1':
+        input_html = """<span id="account-type"></span>"""
+    elif transaction_type == '2':
+        input_html = """
+            <div id="account-type" class="form-floating mb-3">
+                <input type="number" min="0" step="0.01" class="form-control" id="interest" name="interest" placeholder="Interest Rate" required>
+                <label for="interest">Interest Rate</label>
+            </div>
+        """
+    else:
+        input_html = """<span id="account-type"></span>"""
+    return render_template_string(input_html)
+
+@bp.route('/transaction-type', methods=['POST'])
+def transaction_type():
+    transaction_type = request.values.get('transaction-type')
+    if transaction_type == '1':
+        input_html = """
+            <span id="transaction-type">
+                <select name="category" class="form-select mb-3">
+                    <option selected>Category</option>
+                    <option value="Salary">Salary</option>
+                    <option value="Gift">Gift</option>
+                    <option value="Interest">Interest</option>
+                    <option value="Other">Other</option>
+                </select>
+                <div class="input-group mb-3">
+                    <span id="transaction-type" class="input-group-text bg-success text-light">+</span>
+                    <span class="input-group-text">$</span>
+                    <div class="form-floating">
+                        <input type="number" min="0" step="0.01" class="form-control" id="amount" name="amount" placeholder="Amount" required>
+                        <label for="amount">Amount</label>
+                    </div>
+                </div>
+            </span>
+        """
+    elif transaction_type == '2':
+        input_html = """
+            <span id="transaction-type">
+                <select name="category" class="form-select mb-3">
+                    <option selected>Category</option>
+                    <option value="Bills">Housing</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Savings">Savings</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Recreation">Recreation</option>
+                    <option value="Debt">Debt</option>
+                    <option value="Education">Education</option>
+                    <option value="Childcare">Childcare</option>
+                    <option value="Gifts">Gifts</option>
+                    <option value="Donations">Donations</option>
+                    <option value="Food">Food</option>
+                    <option value="Other">Other</option>
+                </select>
+                <div class="input-group mb-3">
+                    <span id="transaction-type" class="input-group-text bg-danger text-light">-</span>
+                    <span class="input-group-text">$</span>
+                    <div class="form-floating">
+                        <input type="number" min="0" step="0.01" class="form-control" id="amount" name="amount" placeholder="Amount" required>
+                        <label for="amount">Amount</label>
+                    </div>
+                </div>
+            </span>
+        """
+    else:
+        input_html = """
+            <span id="transaction-type">
+                <select name="category" class="form-select mb-3" disabled>
+                    <option selected>Category</option>
+                </select>
+                <div class="input-group mb-3">
+                    <span id="transaction-type" class="input-group-text">?</span>
+                    <span class="input-group-text">$</span>
+                    <div class="form-floating">
+                        <input type="number" min="0" step="0.01" class="form-control" id="amount" name="amount" placeholder="Amount" disabled required>
+                        <label for="amount">Amount</label>
+                    </div>
+                </div>
+            </span>
+        """
+    return render_template_string(input_html)
+
+@bp.route('/dashboard-mode', methods=['POST'])
+def dashboard_mode():
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+    years = set([transaction.timestamp.year for transaction in transactions])
+    months = set([transaction.timestamp.month for transaction in transactions])
+    days = set([transaction.timestamp.day for transaction in transactions])
+    mode = request.values.get('dashboard-mode')
+    if mode == 'Mode' or mode == '1':
+        # No selected or YTD
+        input_html = """
+            <div id="mode-type">
+                <select class="form-select" aria-label="Type" disabled>
+                    <option selected>Type</option>
+                </select>
+            </div>
+        """
+    elif mode == "2" and years:
+        # Yearly
+        input_html = """
+            <div id="mode-type">
+                <select class="form-select" aria-label="Type">
+                    <option selected>Type</option>
+                    {% for year in years %}
+                    <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        """
+    elif mode == "3" and months:
+        # Monthly
+        input_html = """
+            <div id="mode-type">
+                <select class="form-select" aria-label="Type">
+                    <option selected>Type</option>
+                    {% for month in months %}
+                    <option value="{{ month }}">{{ month }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        """
+    elif (mode == "4" or mode == "5") and days:
+        # Daily
+        input_html = """
+            <div id="mode-type">
+                <select class="form-select" aria-label="Type">
+                    <option selected>Type</option>
+                    {% for day in days %}
+                    <option value="{{ day }}">{{ day }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        """
+    else:
+        input_html = """
+            <div id="mode-type">
+                <select class="form-select" aria-label="Type" disabled>
+                    <option selected>Type</option>
+                </select>
+            </div>
+        """
+    return render_template_string(input_html, years=years, months=months, days=days)
 
 @bp.route('/toggle-login-input', methods=['POST'])
 def toggle_login_input():
@@ -120,9 +275,105 @@ def logout():
 @bp.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    accounts = Account.query.filter_by(user_id=current_user.id).all()
+    if accounts:
+        has_accounts = True
+    else:
+        has_accounts = False
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+    return render_template('dashboard.html', accounts=accounts, has_accounts=has_accounts, transactions=transactions)
 
 @bp.route('/profile')
 @login_required
 def profile():
     return render_template('profile.html')
+
+@bp.route('/transactions', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+def transactions():
+    if request.method == 'POST':
+        amount = request.form.get('amount')
+        description = request.form.get('description')
+        category = request.form.get('category')
+        account = request.form.get('account')
+        transaction_type = request.form.get('transaction-type')
+        new_transaction = Transaction(
+            user_id=current_user.id,
+            amount=amount,
+            description=description,
+            category=category,
+            account=account,
+            type=transaction_type
+        )
+        db.session.add(new_transaction)
+        account_to_change = Account.query.filter_by(name=account).first()
+        print(account_to_change)
+        if transaction_type == '1':
+            account_to_change.balance += float(amount)
+        elif transaction_type == '2':
+            account_to_change.balance -= float(amount)
+        db.session.commit()
+        return redirect(url_for('web.dashboard'))
+    if request.method == 'PUT':
+        transaction_id = request.form.get('transaction-id')
+        amount = request.form.get('amount')
+        description = request.form.get('description')
+        category = request.form.get('category')
+        account = request.form.get('account')
+        transaction_type = request.form.get('transaction-type')
+        transaction = Transaction.query.get(transaction_id)
+        transaction.amount = amount
+        transaction.description = description
+        transaction.category = category
+        transaction.account = account
+        transaction.type = transaction_type
+        db.session.commit()
+        return redirect(url_for('web.dashboard'))
+    if request.method == 'DELETE':
+        transaction_id = request.form.get('transaction-id')
+        transaction = Transaction.query.get(transaction_id)
+        db.session.delete(transaction)
+        db.session.commit()
+        return redirect(url_for('web.dashboard'))
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+    return render_template('transactions.html', transactions=transactions)
+
+@bp.route('/accounts', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+def accounts():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        account_type = request.form.get('account-type')
+        balance = request.form.get('balance')
+        new_account = Account(
+            user_id=current_user.id,
+            name=name,
+            description=description,
+            type=account_type,
+            balance=balance
+        )
+        db.session.add(new_account)
+        db.session.commit()
+        return redirect(url_for('web.dashboard'))
+    if request.method == 'PUT':
+        account_id = request.form.get('account-id')
+        name = request.form.get('name')
+        description = request.form.get('description')
+        account_type = request.form.get('account-type')
+        balance = request.form.get('balance')
+        account = Account.query.get(account_id)
+        account.name = name
+        account.description = description
+        account.type = account_type
+        account.balance = balance
+        db.session.commit()
+        return redirect(url_for('web.dashboard'))
+    if request.method == 'DELETE':
+        account_id = request.form.get('account-id')
+        account = Account.query.get(account_id)
+        db.session.delete(account)
+        db.session.commit()
+        return redirect(url_for('web.dashboard'))
+    accounts = Account.query.filter_by(user_id=current_user.id).all()
+    return render_template('accounts.html', accounts=accounts)

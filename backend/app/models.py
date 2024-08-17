@@ -23,12 +23,37 @@ class User(UserMixin, db.Model):
             'username': self.username,
             'email': self.email
         }
+    
+class Account(db.Model):
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    name = Column(String(64), nullable=False)
+    description = Column(String(256))
+    type = Column(String(64), nullable=False)
+    balance = Column(Float, nullable=False)
+    created_at = Column(DateTime, index=True, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, index=True, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'description': self.description,
+            'type': self.type,
+            'balance': self.balance,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'updated_at': self.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+        }
 
 class Transaction(db.Model):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     amount = Column(Float, nullable=False)
+    description = Column(String(256))
     category = Column(String(64))
+    account = Column(String(64))
+    type = Column(String(64))
     timestamp = Column(DateTime, index=True, default=datetime.now(timezone.utc))
 
     def to_dict(self):
@@ -37,7 +62,10 @@ class Transaction(db.Model):
             'user_id': self.user_id,
             'amount': self.amount,
             'category': self.category,
-            'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'description': self.description,
+            'account': self.account,
+            'type': self.type,
         }
 
 class Budget(db.Model):

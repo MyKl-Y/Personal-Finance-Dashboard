@@ -3,5 +3,16 @@
 {% block title %}{{ current_user.username }}'s Profile - M.Y.MoneyMap{% endblock %}
 
 {% block content %}
-<div></div>
+<div>
+    <h1>{{ current_user.username }}'s Profile</h1>
+    <p>
+        <b>Username:</b> {{ current_user.username }}<br>
+        <b>Email:</b> {{ current_user.email }}<br>
+        <a 
+            role="button" 
+            class="btn rounded-pill {{ 'btn-primary active' if request.path == url_for('web.logout') else 'btn-outline-primary' }}" 
+            href="{{ url_for('web.logout') }}"
+        >Logout</a>
+    </p>
+</div>
 {% endblock %}
