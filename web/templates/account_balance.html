@@ -1,0 +1,29 @@
+<div id="account-{{account.id}}">
+    <p>
+        {{account.name}}
+        {{"Checking" if account.type == '1' else 'Savings'}} Account:
+        Current Balance = ${{'%0.2f' | format(account.balance|float)}}
+    </p>
+    <div id="transactions-{{account.id}}">
+        {% if transactions %}
+        {% for transaction in transactions %}
+        {% if account.name == transaction.account %}
+        <div id="transaction-{{transaction.id}}">
+            <p>
+                {{'+' if transaction.type == '1' else '-'}}${{'%0.2f' | format(transaction.amount|float)}}
+                from {{account.name}} {{"Checking" if account.type == '1' else 'Savings'}} Account for {{transaction.category}}
+            </p>
+            <button 
+                hx-delete="{{url_for('web.transaction', transaction_id=transaction.id)}}" 
+                hx-confirm="Are you sure you want to delete this transaction?"
+                hx-target="#transaction-{{transaction.id}}"
+                hx-swap="outerHTML"
+                hx-trigger="afterRequest: updateAccount('{{account.id}}')"
+                class="btn btn-danger"
+            >Delete</button>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+    </div>
+</div>

@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
 from flask_bcrypt import Bcrypt
+from flask_socketio import SocketIO
 
 class Base(DeclarativeBase):
     pass
@@ -15,6 +16,7 @@ db = SQLAlchemy(model_class=Base)
 #redis_client = FlaskRedis()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
+socketio = SocketIO()
 
 def create_app():
     app = Flask(__name__, template_folder='../../web/templates', static_folder='../../web/static')
@@ -25,6 +27,7 @@ def create_app():
     #redis_client.init_app(app)
     login_manager.init_app(app)
     bcrypt.init_app(app)
+    socketio.init_app(app)
 
     login_manager.login_view = 'web.login' # Redirect to login page if user tries to access a protected route
 

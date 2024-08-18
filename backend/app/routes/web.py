@@ -1,8 +1,10 @@
 # app/web.py
+import io
 import re
 import datetime
+import random
 
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, render_template_string
+from flask import Blueprint, Response, request, jsonify, render_template, redirect, url_for, render_template_string
 from ..models import db, User, Transaction, Budget, Account
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
@@ -104,10 +106,17 @@ def transaction_type():
 @bp.route('/dashboard-mode', methods=['POST'])
 def dashboard_mode():
     transactions = Transaction.query.filter_by(user_id=current_user.id).all()
-    years = set([transaction.timestamp.year for transaction in transactions])
-    months = set([transaction.timestamp.month for transaction in transactions])
-    days = set([transaction.timestamp.day for transaction in transactions])
+
+    year_month_combinations = set([(transaction.timestamp.year, transaction.timestamp.month) for transaction in transactions])
+
+    year_month_days_combinations = set([(transaction.timestamp.year, transaction.timestamp.month, transaction.timestamp.day) for transaction in transactions])
+
     mode = request.values.get('dashboard-mode')
+
+    years = {year for year, _ in year_month_combinations}
+    months = {(year, month) for year, month in year_month_combinations}
+    days = {(year, month, day) for year, month, day in year_month_days_combinations}
+
     if mode == 'Mode' or mode == '1':
         # No selected or YTD
         input_html = """
@@ -135,20 +144,20 @@ def dashboard_mode():
             <div id="mode-type">
                 <select class="form-select" aria-label="Type">
                     <option selected>Type</option>
-                    {% for month in months %}
-                    <option value="{{ month }}">{{ month }}</option>
+                    {% for year, month in months %}
+                    <option value="{{ year }}-{{ month }}">{{ year }}-{{ month }}</option>
                     {% endfor %}
                 </select>
             </div>
         """
-    elif (mode == "4" or mode == "5") and days:
-        # Daily
+    elif mode in ["4", "5"] and days:
+        # Weekly or Daily
         input_html = """
             <div id="mode-type">
                 <select class="form-select" aria-label="Type">
                     <option selected>Type</option>
-                    {% for day in days %}
-                    <option value="{{ day }}">{{ day }}</option>
+                    {% for year, month, day in days %}
+                    <option value="{{ year }}-{{ month }}-{{ day }}">{{ year }}-{{ month }}-{{ day }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -272,6 +281,43 @@ def logout():
     logout_user()
     return redirect(url_for('web.home'))
 
+@bp.route('/chart-data')
+@login_required
+def chart_data():
+    # Get the transactions for the current user
+    transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+
+    # Example: Group transactions by category for a pie chart
+    categories = {}
+    for transaction in transactions:
+        if transaction.category not in categories:
+            categories[transaction.category] = 0
+        categories[transaction.category] += transaction.amount if transaction.type == '1' else -transaction.amount
+
+    data = {
+        "labels": list(categories.keys()),
+        "datasets": [{
+            "label": "Expenses by Category",
+            "data": list(categories.values()),
+            "backgroundColor": [
+                "rgba(75, 192, 192, 0.2)",
+                "rgba(54, 162, 235, 0.2)",
+                "rgba(255, 206, 86, 0.2)",
+                "rgba(255, 99, 132, 0.2)"
+            ],
+            "borderColor": [
+                "rgba(75, 192, 192, 1)",
+                "rgba(54, 162, 235, 1)",
+                "rgba(255, 206, 86, 1)",
+                "rgba(255, 99, 132, 1)"
+            ],
+            "borderWidth": 1
+        }]
+    }
+
+    return jsonify(data)
+
+
 @bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -281,14 +327,62 @@ def dashboard():
     else:
         has_accounts = False
     transactions = Transaction.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', accounts=accounts, has_accounts=has_accounts, transactions=transactions)
+    total_balance = sum([account.balance for account in accounts])
+
+    return render_template(
+        'dashboard.html',
+        accounts=accounts,
+        has_accounts=has_accounts,
+        transactions=transactions,
+        total_balance=total_balance
+    )
 
 @bp.route('/profile')
 @login_required
 def profile():
     return render_template('profile.html')
 
-@bp.route('/transactions', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@bp.route('/transaction/<int:transaction_id>', methods=['GET', 'PUT', 'DELETE'])
+@login_required
+def transaction(transaction_id):
+    if request.method == 'GET':
+        transaction = Transaction.query.get(transaction_id)
+        return render_template('transaction.html', transaction=transaction)
+    if request.method == 'PUT':
+        amount = request.form.get('amount')
+        description = request.form.get('description')
+        category = request.form.get('category')
+        account = request.form.get('account')
+        transaction_type = request.form.get('transaction-type')
+        transaction = Transaction.query.get(transaction_id)
+        account_to_change = Account.query.filter_by(name=account).first()
+        if transaction.type == '1':
+            account_to_change.balance += float(transaction.amount)
+            account_to_change.balance -= float(amount)
+        elif transaction.type == '2':
+            account_to_change.balance -= float(transaction.amount)
+            account_to_change.balance += float(amount)
+        transaction.amount = amount
+        transaction.description = description
+        transaction.category = category
+        transaction.account = account
+        transaction.type = transaction_type
+        db.session.commit()
+        return redirect(url_for('web.dashboard'))
+    if request.method == 'DELETE':
+        transaction = Transaction.query.get(transaction_id)
+        account_to_change = Account.query.filter_by(name=transaction.account).first()
+        if transaction.type == '1':
+            account_to_change.balance -= float(transaction.amount)
+        elif transaction.type == '2':
+            account_to_change.balance += float(transaction.amount)
+        db.session.delete(transaction)
+        db.session.commit()
+
+        remaining_transactions = Transaction.query.filter_by(user_id=current_user.id).all()
+        return render_template('account_balance.html', account=account_to_change, transactions=remaining_transactions)
+
+@bp.route('/transactions', methods=['GET', 'POST'])
 @login_required
 def transactions():
     if request.method == 'POST':
@@ -307,32 +401,10 @@ def transactions():
         )
         db.session.add(new_transaction)
         account_to_change = Account.query.filter_by(name=account).first()
-        print(account_to_change)
         if transaction_type == '1':
             account_to_change.balance += float(amount)
         elif transaction_type == '2':
             account_to_change.balance -= float(amount)
-        db.session.commit()
-        return redirect(url_for('web.dashboard'))
-    if request.method == 'PUT':
-        transaction_id = request.form.get('transaction-id')
-        amount = request.form.get('amount')
-        description = request.form.get('description')
-        category = request.form.get('category')
-        account = request.form.get('account')
-        transaction_type = request.form.get('transaction-type')
-        transaction = Transaction.query.get(transaction_id)
-        transaction.amount = amount
-        transaction.description = description
-        transaction.category = category
-        transaction.account = account
-        transaction.type = transaction_type
-        db.session.commit()
-        return redirect(url_for('web.dashboard'))
-    if request.method == 'DELETE':
-        transaction_id = request.form.get('transaction-id')
-        transaction = Transaction.query.get(transaction_id)
-        db.session.delete(transaction)
         db.session.commit()
         return redirect(url_for('web.dashboard'))
     transactions = Transaction.query.filter_by(user_id=current_user.id).all()
