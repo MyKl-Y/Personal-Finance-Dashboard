@@ -56,6 +56,12 @@ class Transaction(db.Model):
     type = Column(String(64))
     timestamp = Column(DateTime, index=True, default=datetime.now(timezone.utc))
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Only set the timestamp if not already set
+        if 'timestamp' not in kwargs:
+            self.timestamp = datetime.now(timezone.utc)
+
     def to_dict(self):
         return {
             'id': self.id,

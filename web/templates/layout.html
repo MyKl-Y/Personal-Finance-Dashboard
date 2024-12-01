@@ -84,6 +84,12 @@
                                 href="{{ url_for('web.dashboard') }}"
                             >Dashboard</a>
                         </li>
+                        <li class="nav-item">
+                            <a 
+                                class="nav-link me-3 {{ 'active' if request.path == url_for('web.transactions') else '' }}" 
+                                href="{{ url_for('web.transactions') }}"
+                            >Transactions</a>
+                        </li>
                         {% endif %}
                         {% if request.path != url_for('web.home') and current_user.is_authenticated %}
                         <li class="nav-item">
@@ -91,6 +97,12 @@
                                 class="nav-link me-3 {{ 'active' if request.path == url_for('web.dashboard') else '' }}" 
                                 href="{{ url_for('web.dashboard') }}"
                             >Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a 
+                                class="nav-link me-3 {{ 'active' if request.path == url_for('web.transactions') else '' }}" 
+                                href="{{ url_for('web.transactions') }}"
+                            >Transactions</a>
                         </li>
                         {% endif %}
                         {% if request.path == url_for('web.home') and not current_user.is_authenticated %}
@@ -196,10 +208,10 @@
     </footer>
     {% else %}
     <footer class="py-2 bottom-0">
-        <p class="m-0 d-flex justify-content-center align-items-center">
+        <span class="m-0 d-flex justify-content-center align-items-center">
             Copyright &copy;2024. All rights reserved.
             M.Y.MoneyMap
-        </p>
+        </span>
     </footer>
     {% endif %}
 

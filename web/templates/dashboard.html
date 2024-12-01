@@ -3,214 +3,503 @@
 {% block title %}Dashboard - M.Y.MoneyMap{% endblock %}
 
 {% block content %}
-<div class="p-5">
-    <div class="d-flex flex-row justify-content-between">
-        <h4>Welcome, {{current_user.username}}</h4>
-        <div class="d-flex flex-row">
-            <button 
-                type="button" 
-                class="btn btn-success" 
-                data-bs-toggle="modal" 
-                data-bs-target="#addAccountModal"
-                data-bs-placement="bottom" 
-                title="Add new account"
-            >
-                + Account
-            </button>
-            {% if has_accounts %}
-            <button 
-                type="button" 
-                class="btn btn-success" 
-                data-bs-toggle="modal" 
-                data-bs-target="#addTransactionModal"
-                data-bs-placement="bottom" 
-                title="Add new transaction"
-            >
-                + Transaction
-            </button>
-            {% endif %}
-            <select 
-                hx-post="/dashboard-mode" 
-                hx-trigger="change" 
-                hx-target="#mode-type" 
-                hx-swap="outerHTML"
-                name="dashboard-mode"
-                class="form-select w-auto" 
-                aria-label="Mode">
-                <option selected>Mode</option>
-                <option value="1">YTD</option>
-                <option value="2">Yearly</option>
-                <option value="3">Monthly</option>
-                <option value="4">Weekly</option>
-                <option value="5">Daily</option>
-            </select>
-            <div id="mode-type">
-                <select class="form-select" aria-label="Type" disabled>
-                    <option selected>Type</option>
-                </select>
-            </div>
-        </div>
-        <span>{{ now.strftime("%A, %B %dth, %Y") }}</span>
-    </div>
-
-    <div class="d-flex overflow-scroll h-100">
+<!--
+<div class="d-flex flex-row justify-content-between">
+    <h4>Welcome, {{current_user.username}}</h4>
+    <div class="d-flex flex-row">
+        <button 
+            type="button" 
+            class="btn btn-success" 
+            data-bs-toggle="modal" 
+            data-bs-target="#addAccountModal"
+            data-bs-placement="bottom" 
+            title="Add new account"
+        >
+            + Account
+        </button>
         {% if has_accounts %}
-        <!--
-        {% for account in accounts %}
-        <div id="account-{{account.id}}">
-            <p>
-                {{account.name}}
-                {{"Checking" if account.type == '1' else 'Savings'}} Account:
-                Current Balance = ${{'%0.2f' | format(account.balance|float)}}
-            </p>
-            <div id="transactions-{{account.id}}">
-                {% if transactions %}
-                {% for transaction in transactions %}
-                {% if account.name == transaction.account %}
-                <div id="transaction-{{transaction.id}}">
-                    <p>
-                        {{'+' if transaction.type == '1' else '-'}}${{'%0.2f' | format(transaction.amount|float)}}
-                        from {{account.name}} {{"Checking" if account.type == '1' else 'Savings'}} Account for {{transaction.category}}
-                    </p>
-                    <button 
-                        hx-delete="{{url_for('web.transaction', transaction_id=transaction.id)}}" 
-                        hx-confirm="Are you sure you want to delete this transaction?"
-                        hx-target="#account-{{account.id}}"
-                        hx-swap="outerHTML"
-                        class="btn btn-danger"
-                    >X</button>
-                </div>
-                {% endif %}
-                {% endfor %}
-                {% endif %}
+        <button 
+            type="button" 
+            class="btn btn-success" 
+            data-bs-toggle="modal" 
+            data-bs-target="#addTransactionModal"
+            data-bs-placement="bottom" 
+            title="Add new transaction"
+        >
+            + Transaction
+        </button>
+        {% endif %}
+        <select 
+            hx-post="/dashboard-mode" 
+            hx-trigger="change" 
+            hx-target="#mode-type" 
+            hx-swap="outerHTML"
+            name="dashboard-mode"
+            class="form-select w-auto" 
+            aria-label="Mode">
+            <option selected>Mode</option>
+            <option value="1">YTD</option>
+            <option value="2">Yearly</option>
+            <option value="3">Monthly</option>
+            <option value="4">Weekly</option>
+            <option value="5">Daily</option>
+        </select>
+        <div id="mode-type">
+            <select class="form-select" aria-label="Type" disabled>
+                <option selected>Type</option>
+            </select>
+        </div>
+    </div>
+    <span>{{ now.strftime("%A, %B %dth, %Y") }}</span>
+</div>
+-->
+
+<div id="dashboard" class="pt-5 px-5" 
+    style="
+        height: calc(100vh - 6rem - 1vw);
+        display: grid;
+        grid-template-columns: repeat(5, minmax(150px,1fr));
+        grid-template-rows: repeat(6, 1fr);
+        grid-column-gap: .5rem;
+        grid-row-gap: .5rem;"
+>
+    {% if has_accounts %}
+    <!--
+    {% for account in accounts %}
+    <div id="account-{{account.id}}">
+        <p>
+            {{account.name}}
+            {{"Checking" if account.type == '1' else 'Savings'}} Account:
+            Current Balance = ${{'%0.2f' | format(account.balance|float)}}
+        </p>
+        <div id="transactions-{{account.id}}">
+            {% if transactions %}
+            {% for transaction in transactions %}
+            {% if account.name == transaction.account %}
+            <div id="transaction-{{transaction.id}}">
+                <p>
+                    {{'+' if transaction.type == '1' else '-'}}${{'%0.2f' | format(transaction.amount|float)}}
+                    from {{account.name}} {{"Checking" if account.type == '1' else 'Savings'}} Account for {{transaction.category}}
+                </p>
+                <button 
+                    hx-delete="{{url_for('web.transaction', transaction_id=transaction.id)}}" 
+                    hx-confirm="Are you sure you want to delete this transaction?"
+                    hx-target="#account-{{account.id}}"
+                    hx-swap="outerHTML"
+                    class="btn btn-danger"
+                >X</button>
             </div>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
         </div>
-        {% endfor %}
-        -->
-        <h5>Available Balance <span class="text-primary">${{'%0.2f' | format(total_balance|float)}}</span></h5>
-        <div style="height: 25vw !important; width: 25vw !important;">
-            <canvas id="myChart"></canvas>
+    </div>
+    {% endfor %}
+    -->
+    <div style="grid-area: 1 / 1 / 3 / 2;" class="d-flex flex-column bg-white p-2 rounded-3 shadow-sm">
+        <span style="height: 12.5%; font-size: calc(.75vw + .75vh)">Available Balance</span> 
+        <div style="height: 37.5%; width: 100%; font-size: calc(1.5vw + 1.5vh)">
+            <span class="text-primary m-0">{{'${:,.2f}'.format(total_balance|float)}}</span>
         </div>
-        <script>
-            // Fetch data and render chart
-            fetch('/chart-data')
-                .then(response => response.json())
-                .then(data => {
-                    const ctx = document.getElementById('myChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'pie', // You can change the chart type here (line, bar, pie, etc.)
-                        data: data,
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Expenses by Category'
-                                }
+        <div style="height: calc(50%);">
+            <canvas id="balance-by-account"></canvas>
+        </div>
+    </div>
+    <div class="bg-white p-2 rounded-3 shadow-sm" style="grid-area: 3 / 2 / 5 / 3;">
+        <span style="font-size: calc(.75vw + .75vh);">Expenses by Category</span>
+        <div style="height: 75%;">
+            <canvas id="expenses-by-category"></canvas>
+        </div>
+    </div>
+    <div class="p-2" style="grid-area: 5 / 3 / 7 / 6; font-size: calc(.75vw + .75vh);">
+        Expenses Source
+        <hr style="margin-top: 0;" />
+        <div class="d-flex flex-row w-100" style="overflow-x: scroll;">
+            {% set expense_categories = [
+                {'icon': 'bi-boxes', 'category': 'Housing', 'color': 'bg-primary'},
+                {'icon': 'bi-boxes', 'category': 'Transportation', 'color': 'bg-success'},
+                {'icon': 'bi-boxes', 'category': 'Utilities', 'color': 'bg-danger'},
+                {'icon': 'bi-boxes', 'category': 'Insurance', 'color': 'bg-warning'},
+                {'icon': 'bi-boxes', 'category': 'Medical', 'color': 'bg-primary'},
+                {'icon': 'bi-boxes', 'category': 'Savings', 'color': 'bg-success'},
+                {'icon': 'bi-boxes', 'category': 'Investments', 'color': 'bg-danger'},
+                {'icon': 'bi-boxes', 'category': 'Retirement', 'color': 'bg-warning'},
+                {'icon': 'bi-boxes', 'category': 'Personal', 'color': 'bg-primary'},
+                {'icon': 'bi-boxes', 'category': 'Recreation', 'color': 'bg-success'},
+                {'icon': 'bi-boxes', 'category': 'Debt', 'color': 'bg-danger'},
+                {'icon': 'bi-boxes', 'category': 'Education', 'color': 'bg-warning'},
+                {'icon': 'bi-boxes', 'category': 'Childcare', 'color': 'bg-primary'},
+                {'icon': 'bi-boxes', 'category': 'Gifts', 'color': 'bg-success'},
+                {'icon': 'bi-boxes', 'category': 'Donations', 'color': 'bg-danger'},
+                {'icon': 'bi-boxes', 'category': 'Food', 'color': 'bg-warning'},
+                {'icon': 'bi-boxes', 'category': 'Subscriptions', 'color': 'bg-primary'},
+                {'icon': 'bi-boxes', 'category': 'Other', 'color': 'bg-success'},
+            ] %}
+            
+            {% for category in expense_categories %}
+            <div class="d-flex flex-row me-5" style="flex-basis: 0;">
+                <span class="{{category.color}} d-flex me-3 justify-content-center align-items-center rounded-3 shadow-sm" style="aspect-ratio: 1 / 1; height: 90%;">
+                    <i style="font-size: calc(1.5vw + 1.5vh);" class="bi {{ category.icon }} text-white"></i>
+                </span>
+                <div class="d-flex flex-column">
+                    <span>{{ category.category }}</span>
+                    <span>
+                        {{ '${:,.2f}'.format(
+                            transactions | selectattr('category', 'equalto', category.category) 
+                                            | selectattr('type', 'equalto', '2') 
+                                            | map(attribute='amount') | sum) }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="p-2" style="grid-area: 5 / 1 / 7 / 3; font-size: calc(.75vw + .75vh);">
+        Income Source
+        <hr style="margin-top: 0;" />
+        <div style="display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            grid-column-gap: 5px;
+            grid-row-gap: 5px;">
+
+            {% set income_categories = [
+                {'icon': 'bi bi-cash', 'category': 'Salary', 'color': 'bg-primary'},
+                {'icon': 'bi bi-gift', 'category': 'Gift', 'color': 'bg-success'},
+                {'icon': 'bi bi-percent', 'category': 'Interest', 'color': 'bg-danger'},
+                {'icon': 'bi bi-boxes', 'category': 'Other', 'color': 'bg-warning'},
+            ] %}
+            
+            {% for category in income_categories %}
+            <div class="d-flex flex-row">
+                <span class="{{ category.color }} d-flex me-3 justify-content-center align-items-center rounded-3 shadow-sm" style="aspect-ratio: 1 / 1; height: 90%;">
+                    <i style="font-size: calc(1.5vw + 1.5vh);" class="bi {{ category.icon }} text-light"></i>
+                </span>
+                <div class="d-flex flex-column">
+                    <span>{{ category.category }}</span>
+                    <span>
+                        {{ '${:,.2f}'.format(transactions | selectattr('category', 'equalto', category.category) 
+                                            | selectattr('type', 'equalto', '1') 
+                                            | map(attribute='amount') | sum) }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+            <!--
+            <div class="d-flex flex-row">
+                <span class="d-flex me-3 justify-content-center align-items-center bg-white rounded-3 shadow-sm" style="aspect-ratio: 1 / 1; height: 90%;">
+                    <i style="font-size: 2vw;" class="bi bi-cash"></i>
+                </span>
+                <div class="d-flex flex-column">
+                    <span>Salary</span>
+                    <span>
+                        {{ '${:,.2f}'.format(transactions | selectattr('category', 'equalto', 'Salary') 
+                                        | selectattr('type', 'equalto', '1') 
+                                        | map(attribute='amount') | sum) }}
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex flex-row">
+                <span class="d-flex me-3 justify-content-center align-items-center bg-white rounded-3 shadow-sm" style="aspect-ratio: 1 / 1; height: 90%;">
+                    <i style="font-size: 2vw;" class="bi bi-gift"></i>
+                </span>
+                <div class="d-flex flex-column">
+                    <span>Gift</span>
+                    <span>
+                        {{ '${:,.2f}'.format(transactions | selectattr('category', 'equalto', 'Gift') 
+                                        | selectattr('type', 'equalto', '1') 
+                                        | map(attribute='amount') | sum) }}
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex flex-row">
+                <span class="d-flex me-3 justify-content-center align-items-center bg-white rounded-3 shadow-sm" style="aspect-ratio: 1 / 1; height: 90%;">
+                    <i style="font-size: 2vw;" class="bi bi-percent"></i>
+                </span>
+                <div class="d-flex flex-column">
+                    <span>Interest</span>
+                    <span>
+                        {{ '${:,.2f}'.format(transactions | selectattr('category', 'equalto', 'Interest') 
+                                        | selectattr('type', 'equalto', '1') 
+                                        | map(attribute='amount') | sum) }}
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex flex-row">
+                <span class="d-flex me-3 justify-content-center align-items-center bg-white rounded-3 shadow-sm" style="aspect-ratio: 1 / 1; height: 90%;">
+                    <i style="font-size: 2vw;" class="bi bi-boxes"></i>
+                </span>
+                <div class="d-flex flex-column">
+                    <span>Other</span>
+                    <span>
+                        {{ '${:,.2f}'.format(transactions | selectattr('category', 'equalto', 'Other') 
+                                        | selectattr('type', 'equalto', '1') 
+                                        | map(attribute='amount') | sum) }}
+                    </span>
+                </div>
+            </div>-->
+        </div>
+    </div>
+    <div class="bg-white p-2 rounded-3 shadow-sm" style="grid-area: 1 / 2 / 2 / 3;">
+        <span style="font-size: calc(.75vw + .75vh);">Income</span>
+        <div style="height: 50%;">
+            <canvas id="income-sparkline"></canvas>
+        </div>
+    </div>
+    <div class="bg-white p-2 rounded-3 shadow-sm" style="grid-area: 2 / 2 / 3 / 3;">
+        <span style="font-size: calc(.75vw + .75vh);">Expenses</span>
+        <div style="height: 50%;">
+            <canvas id="expenses-sparkline"></canvas>
+        </div>
+    </div>
+    <div class="bg-white p-2 rounded-3 shadow-sm" style="grid-area: 3 / 1 / 5 / 2;">
+        <span style="font-size: calc(.75vw + .75vh);">Income by Category</span>
+        <div style="height: 75%;">
+            <canvas id="income-by-category"></canvas>
+        </div>
+    </div>
+    <div class="bg-white p-2 rounded-3 shadow-sm" style="grid-area: 4 / 3 / 5 / 6;">Budget Goal</div>
+    <div class="bg-white p-2 rounded-3 shadow-sm" style="grid-area: 1 / 3 / 4 / 6;">
+        <span style="font-size: calc(.75vw + .75vh);">Income & Expenses Over Time</span>
+        <div style="height: 90%;">
+            <canvas id="income-expense-combined"></canvas>
+        </div>
+    </div>
+    <script>
+        // Fetch data and render chart
+        fetch('/expenses-by-category')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('expenses-by-category').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie', // You can change the chart type here (line, bar, pie, etc.)
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                //position: 'right',
+                                display: false,
+                            },
+                            title: {
+                                //display: true,
+                                //text: 'Expenses by Category'
+                                display: false,
                             }
                         }
-                    });
+                    }
                 });
-        </script>
-        {% else %}
-        <p>No accounts found. Please add an account to get started.</p>
-        {% endif %}
-    </div>
+            });
 
-    <div class="modal fade" id="addTransactionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form method="post" action="/transactions">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Add new transaction</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <select name="account" class="form-select mb-3">
-                            <option selected>Account</option>
-                            {% for account in accounts %}
-                            <option value="{{account.name}}">{{account.name}} {{"Checking" if account.type == '1' else 'Savings'}} Account</option>
-                            {% endfor %}
+        // Fetch data and render chart
+        fetch('/income-by-category')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('income-by-category').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie', // You can change the chart type here (line, bar, pie, etc.)
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                //position: 'right',
+                                display: false,
+                            },
+                            title: {
+                                //display: true,
+                                //text: 'Expenses by Category'
+                                display: false,
+                            }
+                        }
+                    }
+                });
+            });
+
+        // Fetch data and render account balance stacked bar graph
+        fetch('/balance-by-account')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('balance-by-account').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,  // ["Accounts"]
+                        datasets: data.datasets  // Each account is a separate dataset
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            title: { display: false },
+                            legend: { display: false }, 
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        return tooltipItem.dataset.label;  // Show the label with percentage and amount
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { stacked: true, display: false }, 
+                            y: { stacked: true, display: false }
+                        }
+                    }
+                });
+            });
+
+
+
+        // Fetch data and render income over time sparkline
+        fetch('/income-sparkline')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('income-sparkline').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { display: false }, y: { display: false } }
+                    }
+                });
+            });
+
+        // Fetch data and render expenses over time sparkline
+        fetch('/expenses-sparkline')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('expenses-sparkline').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { display: false }, y: { display: false } }
+                    }
+                });
+            });
+
+        // Fetch data and render combined income and expense line graph
+        fetch('/income-expense-combined')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('income-expense-combined').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: true } },
+                        scales: { x: { beginAtZero: true }, y: { beginAtZero: true } }
+                    }
+                });
+            });
+    </script>
+    {% else %}
+    <p>No accounts found. Please add an account to get started.</p>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="addTransactionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="/transactions">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add new transaction</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <select name="account" class="form-select mb-3">
+                        <option selected>Account</option>
+                        {% for account in accounts %}
+                        <option value="{{account.name}}">{{account.name}} {{"Checking" if account.type == '1' else 'Savings'}} Account</option>
+                        {% endfor %}
+                    </select>
+                    <select class="form-select mb-3" name="transaction-type" hx-post="/transaction-type" hx-trigger="change" hx-target="#transaction-type" hx-swap="outerHTML">
+                        <option selected>Type</option>
+                        <option value="1">Income</option>
+                        <option value="2">Expense</option>
+                    </select>
+                    <span id="transaction-type">
+                        <select name="category" class="form-select mb-3" disabled>
+                            <option selected>Category</option>
                         </select>
-                        <select class="form-select mb-3" name="transaction-type" hx-post="/transaction-type" hx-trigger="change" hx-target="#transaction-type" hx-swap="outerHTML">
-                            <option selected>Type</option>
-                            <option value="1">Income</option>
-                            <option value="2">Expense</option>
-                        </select>
-                        <span id="transaction-type">
-                            <select name="category" class="form-select mb-3" disabled>
-                                <option selected>Category</option>
-                            </select>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text">?</span>
-                                <span class="input-group-text">$</span>
-                                <div class="form-floating">
-                                    <input type="number" min="0" step="0.01" class="form-control" id="amount" name="amount" placeholder="Amount" disabled required>
-                                    <label for="amount">Amount</label>
-                                </div>
-                            </div>
-                        </span>
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="description" name="description" placeholder="Description" required>
-                            <label for="description">Description</label>
-                        </div>
-                        <div class="form-floating">
-                            <input type="date" class="form-control" id="date" name="date" placeholder="Date" required>
-                            <label for="date">Date</label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-success">+ Add</button>
-                    </div>
-                </form> 
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="addAccountModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addAccountModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form method="post" action="/accounts">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Add new account</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <select class="form-select mb-3" name="account-type" hx-post="/account-type" hx-trigger="change" hx-target="#account-type" hx-swap="outerHTML">
-                            <option selected>Type</option>
-                            <option value="1">Checking</option>
-                            <option value="2">Savings</option>
-                            <!--Add more types of accounts-->
-                        </select>
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="name" name="name" placeholder="Name" required>
-                            <label for="name">Name</label>
-                        </div>
-                        <div id="account-type" class="form-floating mb-3">
-                            <input type="number" min="0" step="0.01" class="form-control" id="interest" name="interest" placeholder="Interest Rate" required>
-                            <label for="interest">Interest Rate</label>
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="description" name="description" placeholder="Description" required>
-                            <label for="description">Description</label>
-                        </div>
                         <div class="input-group mb-3">
+                            <span class="input-group-text">?</span>
                             <span class="input-group-text">$</span>
                             <div class="form-floating">
-                                <input type="number" min="0" step="0.01" class="form-control" id="balance" name="balance" placeholder="Balance" required>
-                                <label for="balance">Balance</label>
+                                <input type="number" min="0" step="0.01" class="form-control" id="amount" name="amount" placeholder="Amount" disabled required>
+                                <label for="amount">Amount</label>
                             </div>
                         </div>
+                    </span>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="description" name="description" placeholder="Description" required>
+                        <label for="description">Description</label>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-success">+ Add</button>
+                    <div class="form-floating">
+                        <input type="date" class="form-control" id="date" name="date" placeholder="Date" required>
+                        <label for="date">Date</label>
                     </div>
-                </form> 
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">+ Add</button>
+                </div>
+            </form> 
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addAccountModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="addAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="/accounts">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add new account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <select class="form-select mb-3" name="account-type" hx-post="/account-type" hx-trigger="change" hx-target="#account-type" hx-swap="outerHTML">
+                        <option selected>Type</option>
+                        <option value="1">Checking</option>
+                        <option value="2">Savings</option>
+                        <!--Add more types of accounts-->
+                    </select>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="name" name="name" placeholder="Name" required>
+                        <label for="name">Name</label>
+                    </div>
+                    <div id="account-type" class="form-floating mb-3">
+                        <input type="number" min="0" step="0.01" class="form-control" id="interest" name="interest" placeholder="Interest Rate" required>
+                        <label for="interest">Interest Rate</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="description" name="description" placeholder="Description" required>
+                        <label for="description">Description</label>
+                    </div>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">$</span>
+                        <div class="form-floating">
+                            <input type="number" min="0" step="0.01" class="form-control" id="balance" name="balance" placeholder="Balance" required>
+                            <label for="balance">Balance</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">+ Add</button>
+                </div>
+            </form> 
         </div>
     </div>
 </div>
